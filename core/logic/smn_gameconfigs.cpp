@@ -31,6 +31,7 @@
 
 #include "common_logic.h"
 #include <IHandleSys.h>
+#include <IPluginSys.h>
 #include "GameConfigs.h"
 
 HandleType_t g_GameConfigsType;
@@ -135,7 +136,7 @@ static cell_t smn_GameConfGetKeyValue(IPluginContext *pCtx, const cell_t *params
 static cell_t smn_GameConfGetAddress(IPluginContext *pCtx, const cell_t *params)
 {
 	cell_t shift_param = 0;
-	if (pCtx->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pCtx)) {
 		shift_param = 1;
 	}
 
@@ -174,7 +175,7 @@ static cell_t smn_GameConfGetAddress(IPluginContext *pCtx, const cell_t *params)
 static cell_t smn_GameConfGetMemSig(IPluginContext *pCtx, const cell_t *params)
 {
 	cell_t shift_param = 0;
-	if (pCtx->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pCtx)) {
 		shift_param = 1;
 	}
 

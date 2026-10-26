@@ -109,7 +109,7 @@ bool AddDetourPluginHook(HookType_t hookType, CHook *pDetour, HookSetup *setup, 
 	}
 
 	// Add the plugin callback to the detour list.
-	CDynamicHooksSourcePawn *pWrapper = new CDynamicHooksSourcePawn(setup, pDetour, pCallback, pCallback->GetParentRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE, hookType == HOOKTYPE_POST);
+	CDynamicHooksSourcePawn *pWrapper = new CDynamicHooksSourcePawn(setup, pDetour, pCallback, UsesInt64Address(pCallback->GetParentRuntime()), hookType == HOOKTYPE_POST);
 	wrappers->push_back(pWrapper);
 
 	return true;
