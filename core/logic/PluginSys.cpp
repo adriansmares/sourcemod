@@ -101,8 +101,11 @@ void CPlugin::InitIdentity()
 	m_handle = handlesys->CreateHandle(g_PluginType, this, g_PluginSys.GetIdentity(), g_PluginSys.GetIdentity(), NULL);
 	m_pRuntime->SetKey(1, m_ident);
 	m_pRuntime->SetKey(2, (IPlugin *)this);
-	bool int64_address = m_pRuntime->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE;
-	m_pRuntime->SetKey(SM_RUNTIMEKEY_INT64_ADDRESS, int64_address ? reinterpret_cast<void *>(uintptr_t(1)) : nullptr);
+
+	uintptr_t flags = 0;
+	if (m_pRuntime->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE)
+		flags |= PluginRuntimeFlag_Int64Address;
+	m_pRuntime->SetKey(3, reinterpret_cast<void *>(flags));
 }
 
 void CPlugin::DestroyIdentity()
