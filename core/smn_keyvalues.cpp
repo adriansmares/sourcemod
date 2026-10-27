@@ -545,16 +545,9 @@ static cell_t smn_CreateKeyValues(IPluginContext *pCtx, const cell_t *params)
 
 static cell_t smn_KeyValuesFromAddress(IPluginContext *pCtx, const cell_t *params)
 {
-	void *addr = reinterpret_cast<void *>(params[1]);
-	if (UsesInt64Address(pCtx))
-	{
-		cell_t *sp_addr;
-		if (int err = pCtx->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE)
-		{
-			return pCtx->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		addr = reinterpret_cast<void *>(*reinterpret_cast<int64_t *>(sp_addr));
-	}
+	void *addr;
+	if (!GetAddressArgument(pCtx, params[1], &addr))
+		return 0;
 
 	if (addr == NULL)
 	{

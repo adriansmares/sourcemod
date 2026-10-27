@@ -869,15 +869,9 @@ enum NumberType
 
 static cell_t LoadFromAddress(IPluginContext *pContext, const cell_t *params)
 {
-	void *addr = reinterpret_cast<void*>(params[1]);
-	if (UsesInt64Address(pContext)) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		auto value = *reinterpret_cast<int64_t*>(sp_addr);
-		addr = (void*)value;
-	}
+	void *addr;
+	if (!GetAddressArgument(pContext, params[1], &addr))
+		return 0;
 
 	if (addr == NULL)
 	{
@@ -904,15 +898,9 @@ static cell_t LoadFromAddress(IPluginContext *pContext, const cell_t *params)
 
 static cell_t StoreToAddress(IPluginContext *pContext, const cell_t *params)
 {
-	void *addr = reinterpret_cast<void*>(params[1]);
-	if (UsesInt64Address(pContext)) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		auto value = *reinterpret_cast<int64_t*>(sp_addr);
-		addr = (void*)value;
-	}
+	void *addr;
+	if (!GetAddressArgument(pContext, params[1], &addr))
+		return 0;
 
 	if (addr == NULL)
 	{
@@ -965,20 +953,11 @@ static cell_t StoreToAddress(IPluginContext *pContext, const cell_t *params)
 
 static cell_t LoadAddressFromAddress(IPluginContext *pContext, const cell_t *params)
 {
-	cell_t shift_param = 0;
-	if (UsesInt64Address(pContext)) {
-		shift_param = 1;
-	}
+	cell_t shift_param = AddressReturnOffset(pContext);
 
-	void *addr = reinterpret_cast<void*>(params[shift_param + 1]);
-	if (shift_param != 0) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[shift_param + 1], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		auto value = *reinterpret_cast<int64_t*>(sp_addr);
-		addr = (void*)value;
-	}
+	void *addr;
+	if (!GetAddressArgument(pContext, params[shift_param + 1], &addr))
+		return 0;
 
 	if (addr == NULL)
 	{
@@ -990,27 +969,14 @@ static cell_t LoadAddressFromAddress(IPluginContext *pContext, const cell_t *par
 	}
 	void* data = *reinterpret_cast<void**>(addr);
 
-	if (shift_param != 0) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		*reinterpret_cast<int64_t*>(sp_addr) = reinterpret_cast<uintptr_t>(data);
-	}
-	return reinterpret_cast<uintptr_t>(data);
+	return ReturnAddress(pContext, params, data);
 }
 
 static cell_t StoreAddressToAddress(IPluginContext *pContext, const cell_t *params)
 {
-	void *addr = reinterpret_cast<void*>(params[1]);
-	if (UsesInt64Address(pContext)) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		auto value = *reinterpret_cast<int64_t*>(sp_addr);
-		addr = (void*)value;
-	}
+	void *addr;
+	if (!GetAddressArgument(pContext, params[1], &addr))
+		return 0;
 
 	if (addr == NULL)
 	{
@@ -1021,15 +987,9 @@ static cell_t StoreAddressToAddress(IPluginContext *pContext, const cell_t *para
 		return pContext->ThrowNativeError("Invalid address 0x%x is pointing to reserved memory.", addr);
 	}
 
-	void *data = reinterpret_cast<void*>(params[2]);
-	if (UsesInt64Address(pContext)) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[2], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		auto value = *reinterpret_cast<int64_t*>(sp_addr);
-		data = (void*)value;
-	}
+	void *data;
+	if (!GetAddressArgument(pContext, params[2], &data))
+		return 0;
 
 	bool updateMemAccess = params[3];
 

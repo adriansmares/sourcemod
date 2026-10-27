@@ -135,10 +135,7 @@ static cell_t smn_GameConfGetKeyValue(IPluginContext *pCtx, const cell_t *params
 
 static cell_t smn_GameConfGetAddress(IPluginContext *pCtx, const cell_t *params)
 {
-	cell_t shift_param = 0;
-	if (UsesInt64Address(pCtx)) {
-		shift_param = 1;
-	}
+	cell_t shift_param = AddressReturnOffset(pCtx);
 
 	Handle_t hndl = static_cast<Handle_t>(params[shift_param + 1]);
 	HandleError herr;
@@ -162,22 +159,12 @@ static cell_t smn_GameConfGetAddress(IPluginContext *pCtx, const cell_t *params)
 		val = nullptr;
 	}
 
-	if (shift_param != 0) {
-		cell_t* sp_addr;
-		if (int err = pCtx->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
-			return pCtx->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		*reinterpret_cast<int64_t*>(sp_addr) = reinterpret_cast<uintptr_t>(val);
-	}
-	return reinterpret_cast<uintptr_t>(val);
+	return ReturnAddress(pCtx, params, val);
 }
 
 static cell_t smn_GameConfGetMemSig(IPluginContext *pCtx, const cell_t *params)
 {
-	cell_t shift_param = 0;
-	if (UsesInt64Address(pCtx)) {
-		shift_param = 1;
-	}
+	cell_t shift_param = AddressReturnOffset(pCtx);
 
 	Handle_t hndl = static_cast<Handle_t>(params[shift_param + 1]);
 	HandleError herr;
@@ -202,14 +189,7 @@ static cell_t smn_GameConfGetMemSig(IPluginContext *pCtx, const cell_t *params)
 		val = nullptr;
 	}
 
-	if (shift_param != 0) {
-		cell_t* sp_addr;
-		if (int err = pCtx->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
-			return pCtx->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		*reinterpret_cast<int64_t*>(sp_addr) = reinterpret_cast<uintptr_t>(val);
-	}
-	return reinterpret_cast<uintptr_t>(val);
+	return ReturnAddress(pCtx, params, val);
 }
 
 static GameConfigsNatives s_GameConfigsNatives;

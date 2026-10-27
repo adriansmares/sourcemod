@@ -174,15 +174,9 @@ cell_t Native_CreateHook(IPluginContext *pContext, const cell_t *params)
 //native Handle:DHookCreateDetour(Address:funcaddr, CallingConvention:callConv, ReturnType:returntype, ThisPointerType:thistype);
 cell_t Native_CreateDetour(IPluginContext *pContext, const cell_t *params)
 {
-	void *addr = reinterpret_cast<void*>(params[1]);
-	if (UsesInt64Address(pContext)) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		auto value = *reinterpret_cast<int64_t*>(sp_addr);
-		addr = (void*)value;
-	}
+	void *addr;
+	if (!GetAddressArgument(pContext, params[1], &addr))
+		return 0;
 
 	HookSetup *setup = new HookSetup((ReturnType)params[3], PASSFLAG_BYVAL, (CallingConvention)params[2], (ThisPointerType)params[4], addr);
 
@@ -651,15 +645,9 @@ cell_t HookRawImpl(IPluginContext *pContext, const cell_t *params, int callbackI
 	if (removalcbIndex > 0)
 		removalcb = pContext->GetFunctionById(params[removalcbIndex]);
 
-	void *iface = reinterpret_cast<void*>(params[3]);
-	if (UsesInt64Address(pContext)) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[3], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		auto value = *reinterpret_cast<int64_t*>(sp_addr);
-		iface = (void*)value;
-	}
+	void *iface;
+	if (!GetAddressArgument(pContext, params[3], &iface))
+		return 0;
 
 	for(int i = g_pHooks.size() -1; i >= 0; i--)
 	{
@@ -1479,10 +1467,7 @@ cell_t Native_IsNullParam(IPluginContext *pContext, const cell_t *params)
 //native Address:DHookGetParamAddress(Handle:hParams, num);
 cell_t Native_GetParamAddress(IPluginContext *pContext, const cell_t *params)
 {
-	cell_t shift_param = 0;
-	if (UsesInt64Address(pContext)) {
-		shift_param = 1;
-	}
+	cell_t shift_param = AddressReturnOffset(pContext);
 
 	HookParamsStruct *paramStruct;
 
@@ -1508,14 +1493,7 @@ cell_t Native_GetParamAddress(IPluginContext *pContext, const cell_t *params)
 
 	auto return_ptr = *(void**)((intptr_t)paramStruct->orgParams + offset);
 
-	if (shift_param != 0) {
-		cell_t* sp_addr;
-		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
-			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
-		}
-		*reinterpret_cast<int64_t*>(sp_addr) = reinterpret_cast<uintptr_t>(return_ptr);
-	}
-	return reinterpret_cast<uintptr_t>(return_ptr);
+	return ReturnAddress(pContext, params, return_ptr);
 }
 
 sp_nativeinfo_t g_Natives[] = 
