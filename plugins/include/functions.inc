@@ -619,10 +619,11 @@ native void SetNativeAddressRef(int param, Address value);
  * This value is returned instead of the native function's return value.
  *
  * @param value         64-bit integer value to return.
+ * @return              0, so a native can return SetNativeReturnInt64(value).
  * @error               Calling from a non-native function, or the native was not
  *                      created with NativeFlag_ReturnsInt64.
  */
-native void SetNativeReturnInt64(int64 value);
+native any SetNativeReturnInt64(int64 value);
 
 /**
  * Sets the return value of a native created with NativeFlag_ReturnsAddress.
@@ -631,10 +632,11 @@ native void SetNativeReturnInt64(int64 value);
  * @note Callers compiled before SourceMod 1.13 receive the low 32 bits.
  *
  * @param value         Address to return.
+ * @return              0, so a native can return SetNativeReturnAddress(value).
  * @error               Calling from a non-native function, or the native was not
  *                      created with NativeFlag_ReturnsAddress.
  */
-native void SetNativeReturnAddress(Address value);
+native any SetNativeReturnAddress(Address value);
 
 /**
  * Gets a function pointer from a native parameter.

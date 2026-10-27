@@ -96,8 +96,7 @@ public any Native_ReturnInt64(Handle plugin, int numParams)
 {
     AssertEq("Native_ReturnInt64 numParams", numParams, 1);
     AssertEq("Native_ReturnInt64 marker", GetNativeCell(1), 7);
-    SetNativeReturnInt64(g_Value);
-    return 0;
+    return SetNativeReturnInt64(g_Value);
 }
 
 
@@ -151,8 +150,7 @@ public any Native_SetInt64Array(Handle plugin, int numParams)
 public any Native_ReturnAddress(Handle plugin, int numParams)
 {
     AssertEq("Native_ReturnAddress marker", GetNativeCell(1), 7);
-    SetNativeReturnAddress(view_as<Address>(g_Value));
-    return 0;
+    return SetNativeReturnAddress(view_as<Address>(g_Value));
 }
 
 

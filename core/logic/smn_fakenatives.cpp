@@ -593,7 +593,8 @@ static cell_t SetNativeReturnInt64Value(IPluginContext *pContext, const cell_t *
 		return 0;
 	}
 	s_curreturnset = true;
-	return 1;
+	// Returns 0 so a native can return the result of this call.
+	return 0;
 }
 
 static cell_t SetNativeReturnInt64(IPluginContext *pContext, const cell_t *params)
