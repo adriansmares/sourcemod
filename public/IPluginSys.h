@@ -460,6 +460,83 @@ namespace SourceMod
 		// A runtime SourceMod did not create, e.g. by an extension embedding SourcePawn itself.
 		return pRuntime->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE;
 	}
+
+	/**
+	 * @brief Reads an Address argument of a native.
+	 *
+	 * Plugins compiled against SourceMod 1.13 or later pass an Address by
+	 * reference as an int64; older plugins pass it as one cell, which is
+	 * zero-extended.
+	 *
+	 * @param pContext		Calling plugin's context.
+	 * @param param			The argument, as found in the native's params.
+	 * @param address		Receives the address.
+	 * @return				True on success; false if an error was thrown.
+	 */
+	inline bool GetAddressArgument(SourcePawn::IPluginContext *pContext, cell_t param, void **address)
+	{
+		if (!UsesInt64Address(pContext))
+		{
+			*address = reinterpret_cast<void *>(static_cast<uintptr_t>(static_cast<uint32_t>(param)));
+			return true;
+		}
+
+		cell_t *value;
+		if (int err = pContext->LocalToPhysAddr(param, &value); err != SP_ERROR_NONE)
+		{
+			pContext->ThrowNativeErrorEx(err, "Could not read argument");
+			return false;
+		}
+		*address = reinterpret_cast<void *>(static_cast<intptr_t>(*reinterpret_cast<int64_t *>(value)));
+		return true;
+	}
+
+	/**
+	 * @brief Returns how many hidden arguments precede the declared arguments
+	 * of a native that returns an Address.
+	 *
+	 * Plugins compiled against SourceMod 1.13 or later pass a hidden first
+	 * argument for the int64 return value, so the native's first declared
+	 * argument is params[1 + offset].
+	 *
+	 * @param pContext		Calling plugin's context.
+	 * @return				1 if the plugin passes the hidden argument, else 0.
+	 */
+	inline cell_t AddressReturnOffset(SourcePawn::IPluginContext *pContext)
+	{
+		return UsesInt64Address(pContext) ? 1 : 0;
+	}
+
+	/**
+	 * @brief Returns an Address from a native.
+	 *
+	 * For plugins compiled against SourceMod 1.13 or later, the address is
+	 * stored in the hidden return argument. Older plugins take it as one cell,
+	 * so an address that does not fit throws an error.
+	 *
+	 * @param pContext		Calling plugin's context.
+	 * @param params		The native's params.
+	 * @param address		Address to return.
+	 * @return				Value for the native to return.
+	 */
+	inline cell_t ReturnAddress(SourcePawn::IPluginContext *pContext, const cell_t *params, void *address)
+	{
+		uintptr_t value = reinterpret_cast<uintptr_t>(address);
+		if (UsesInt64Address(pContext))
+		{
+			cell_t *slot;
+			if (int err = pContext->LocalToPhysAddr(params[1], &slot); err != SP_ERROR_NONE)
+			{
+				return pContext->ThrowNativeErrorEx(err, "Could not write the return value");
+			}
+			*reinterpret_cast<int64_t *>(slot) = static_cast<int64_t>(value);
+		}
+		else if (static_cast<uint64_t>(value) > UINT32_MAX)
+		{
+			return pContext->ThrowNativeError("Address %p does not fit in a cell; recompile the plugin against SourceMod 1.13 or later", address);
+		}
+		return static_cast<cell_t>(value);
+	}
 }
 
 #endif //_INCLUDE_SOURCEMOD_PLUGINMNGR_INTERFACE_H_
