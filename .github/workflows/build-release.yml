@@ -166,8 +166,10 @@ jobs:
           version_base=$(cat ../../product.version)
           version_base=${version_base%-dev} # Ex. 1.12.0
           version_rev=$(git rev-list --count HEAD)
-          version="${version_base}.${version_rev}"
-          expanded_version="${version_base}-git${version_rev}"
+          # Our fork is rebased onto upstream, so the commit count alone can repeat; the short hash tells builds apart.
+          version_sha=$(git rev-parse --short=7 HEAD)
+          version="${version_base}.${version_rev}-${version_sha}"
+          expanded_version="${version_base}-git${version_rev}-${version_sha}"
 
           if [ "${{ matrix.platform}}" == "windows" ]; then
             filename="sourcemod-${expanded_version}-${{ matrix.platform }}.zip"
