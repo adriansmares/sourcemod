@@ -725,7 +725,7 @@ static cell_t GetEntDataEnt2(IPluginContext *pContext, const cell_t *params)
 static cell_t LoadEntityFromHandleAddress(IPluginContext *pContext, const cell_t *params)
 {
 	void *addr = reinterpret_cast<void*>(params[1]);
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		cell_t* sp_addr;
 		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
 			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
@@ -840,7 +840,7 @@ static cell_t SetEntDataEnt2(IPluginContext *pContext, const cell_t *params)
 static cell_t StoreEntityToHandleAddress(IPluginContext *pContext, const cell_t *params)
 {
 	void *addr = reinterpret_cast<void*>(params[1]);
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		cell_t* sp_addr;
 		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
 			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
@@ -2804,7 +2804,7 @@ static cell_t SetEntityFlags(IPluginContext *pContext, const cell_t *params)
 static cell_t GetEntityAddress(IPluginContext *pContext, const cell_t *params)
 {
 	cell_t shift_param = 0;
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		shift_param = 1;
 	}
 

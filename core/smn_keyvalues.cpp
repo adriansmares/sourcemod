@@ -40,6 +40,7 @@
 #include <KeyValues.h>
 #include "utlbuffer.h"
 #include "logic_bridge.h"
+#include <IPluginSys.h>
 
 HandleType_t g_KeyValueType;
 
@@ -545,7 +546,7 @@ static cell_t smn_CreateKeyValues(IPluginContext *pCtx, const cell_t *params)
 static cell_t smn_KeyValuesFromAddress(IPluginContext *pCtx, const cell_t *params)
 {
 	void *addr = reinterpret_cast<void *>(params[1]);
-	if (pCtx->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE)
+	if (UsesInt64Address(pCtx))
 	{
 		cell_t *sp_addr;
 		if (int err = pCtx->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE)

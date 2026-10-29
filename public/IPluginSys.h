@@ -429,6 +429,37 @@ namespace SourceMod
 		 */
 		virtual void RemovePluginsListener(IPluginsListener *listener) =0;
 	};
+
+	/**
+	 * @brief Facts about a plugin that SourceMod determines when it loads the
+	 * plugin, stored as a bitmask in key 3 of its runtime (see
+	 * IPluginRuntime::GetKey).
+	 */
+	enum PluginRuntimeFlags
+	{
+		PluginRuntimeFlag_Int64Address = (1<<0),	/**< Passes an Address as an int64 */
+	};
+
+	/**
+	 * @brief Returns whether a plugin passes an Address as an int64, which
+	 * plugins compiled against SourceMod 1.13 or later do: by reference as an
+	 * argument, and through a hidden first parameter as a return value. Plugins
+	 * compiled before take an Address as one cell.
+	 *
+	 * @param pRuntime		Plugin runtime or context.
+	 * @return				True if the plugin passes an Address as an int64.
+	 */
+	inline bool UsesInt64Address(SourcePawn::IPluginRuntime *pRuntime)
+	{
+		void *flags;
+		if (pRuntime->GetKey(3, &flags))
+		{
+			return (reinterpret_cast<uintptr_t>(flags) & PluginRuntimeFlag_Int64Address) != 0;
+		}
+
+		// A runtime SourceMod did not create, e.g. by an extension embedding SourcePawn itself.
+		return pRuntime->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE;
+	}
 }
 
 #endif //_INCLUDE_SOURCEMOD_PLUGINMNGR_INTERFACE_H_

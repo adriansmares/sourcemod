@@ -870,7 +870,7 @@ enum NumberType
 static cell_t LoadFromAddress(IPluginContext *pContext, const cell_t *params)
 {
 	void *addr = reinterpret_cast<void*>(params[1]);
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		cell_t* sp_addr;
 		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
 			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
@@ -905,7 +905,7 @@ static cell_t LoadFromAddress(IPluginContext *pContext, const cell_t *params)
 static cell_t StoreToAddress(IPluginContext *pContext, const cell_t *params)
 {
 	void *addr = reinterpret_cast<void*>(params[1]);
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		cell_t* sp_addr;
 		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
 			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
@@ -966,7 +966,7 @@ static cell_t StoreToAddress(IPluginContext *pContext, const cell_t *params)
 static cell_t LoadAddressFromAddress(IPluginContext *pContext, const cell_t *params)
 {
 	cell_t shift_param = 0;
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		shift_param = 1;
 	}
 
@@ -1003,7 +1003,7 @@ static cell_t LoadAddressFromAddress(IPluginContext *pContext, const cell_t *par
 static cell_t StoreAddressToAddress(IPluginContext *pContext, const cell_t *params)
 {
 	void *addr = reinterpret_cast<void*>(params[1]);
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		cell_t* sp_addr;
 		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
 			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
@@ -1022,7 +1022,7 @@ static cell_t StoreAddressToAddress(IPluginContext *pContext, const cell_t *para
 	}
 
 	void *data = reinterpret_cast<void*>(params[2]);
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		cell_t* sp_addr;
 		if (int err = pContext->LocalToPhysAddr(params[2], &sp_addr); err != SP_ERROR_NONE) {
 			return pContext->ThrowNativeErrorEx(err, "Could not read argument");

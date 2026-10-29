@@ -175,7 +175,7 @@ cell_t Native_CreateHook(IPluginContext *pContext, const cell_t *params)
 cell_t Native_CreateDetour(IPluginContext *pContext, const cell_t *params)
 {
 	void *addr = reinterpret_cast<void*>(params[1]);
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		cell_t* sp_addr;
 		if (int err = pContext->LocalToPhysAddr(params[1], &sp_addr); err != SP_ERROR_NONE) {
 			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
@@ -652,7 +652,7 @@ cell_t HookRawImpl(IPluginContext *pContext, const cell_t *params, int callbackI
 		removalcb = pContext->GetFunctionById(params[removalcbIndex]);
 
 	void *iface = reinterpret_cast<void*>(params[3]);
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		cell_t* sp_addr;
 		if (int err = pContext->LocalToPhysAddr(params[3], &sp_addr); err != SP_ERROR_NONE) {
 			return pContext->ThrowNativeErrorEx(err, "Could not read argument");
@@ -1480,7 +1480,7 @@ cell_t Native_IsNullParam(IPluginContext *pContext, const cell_t *params)
 cell_t Native_GetParamAddress(IPluginContext *pContext, const cell_t *params)
 {
 	cell_t shift_param = 0;
-	if (pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE) {
+	if (UsesInt64Address(pContext)) {
 		shift_param = 1;
 	}
 
