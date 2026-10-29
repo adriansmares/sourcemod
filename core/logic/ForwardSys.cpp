@@ -222,7 +222,7 @@ bool InvokePluginFunction(IPluginFunction *func, const CallArgs& args, AddressMa
 	bool has_int64 = false;
 	for (uint32_t i = 0; i < args.argc; i++)
 		has_int64 |= args.argv[i].type == CallArgs::ARG_INT64;
-	if (!has_int64 || func->GetParentRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE)
+	if (!has_int64 || UsesInt64Address(func->GetParentRuntime()))
 		return func->Invoke(args, result);
 
 	CallArgs legacy_args = args;
