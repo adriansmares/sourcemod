@@ -49,13 +49,6 @@ static cell_t s_curreturnslot = 0;
 static bool s_curreturnset = false;
 static int64_t s_curreturn = 0;
 
-// Whether a plugin was compiled with Address as an int64, which passes int64 arguments by reference and int64 return
-// values through a hidden first argument.
-static bool UsesInt64Address(IPluginContext *pContext)
-{
-	return pContext->GetRuntime()->FindPubvarByName("__Int64_Address__", nullptr) == SP_ERROR_NONE;
-}
-
 cell_t FakeNativeRouter(IPluginContext *pContext, const cell_t *params, void *pData)
 {
 	FakeNative *native = (FakeNative *)pData;
