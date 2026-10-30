@@ -67,6 +67,7 @@ jobs:
         shell: bash
         run: |
           echo "dependencies=$GITHUB_WORKSPACE/dependencies" >> $GITHUB_OUTPUT
+          echo "ccache=$GITHUB_WORKSPACE/.ccache" >> $GITHUB_OUTPUT
       
       - name: Generate SDK list
         id: sdk_list
@@ -105,6 +106,26 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-mariadb${{ env.MARIADB_CONNECTOR_C_RELEASE }}-mmsource${{ env.MMSOURCE_VERSION }}-
             ${{ runner.os }}-build-${{ env.cache-name }}-mariadb${{ env.MARIADB_CONNECTOR_C_RELEASE }}-
       
+      - name: Install ccache
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq ccache
+
+      - name: Cache compiler output
+        if: matrix.platform == 'linux'
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.path_helper.outputs.ccache }}
+          key: ${{ runner.os }}-ccache-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-
+
+      - name: Install sccache
+        if: matrix.platform == 'windows'
+        uses: mozilla-actions/sccache-action@v0.0.11
+
       - name: Install dependencies
         shell: bash
         env:
@@ -112,6 +133,9 @@ jobs:
         run: |
           mkdir -p '${{ steps.path_helper.outputs.dependencies }}'
           cd '${{ steps.path_helper.outputs.dependencies }}'
+
+          # Our ambuild fork adds CC_LAUNCHER/CXX_LAUNCHER for ccache and sccache; checkout-deps keeps an installed ambuild.
+          "$(command -v python3 || command -v python)" -m pip install --force-reinstall --no-deps git+https://github.com/adriansmares/ambuild.git@master
 
           # Satisfy checkout-deps requirement for a "sourcemod" folder.
           mkdir -p sourcemod
@@ -140,7 +164,18 @@ jobs:
         env:
           BREAKPAD_SYMBOL_SERVER: ${{ vars.BREAKPAD_SYMBOL_SERVER }}
           BREAKPAD_SYMBOL_SERVER_TOKEN: ${{ secrets.BREAKPAD_SYMBOL_SERVER_TOKEN }}
+          CCACHE_DIR: ${{ steps.path_helper.outputs.ccache }}
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_COMPILERCHECK: content
+          CCACHE_MAXSIZE: 3G
+          SCCACHE_GHA_ENABLED: true
         run: |
+          if [ "${{ matrix.platform }}" == "linux" ]; then
+            export CC_LAUNCHER=ccache CXX_LAUNCHER=ccache
+            ccache --zero-stats
+          else
+            export CC_LAUNCHER=sccache CXX_LAUNCHER=sccache
+          fi
           mkdir build
           cd build
           python3 ../configure.py \
@@ -154,6 +189,11 @@ jobs:
             '--mariadb-path=${{ steps.path_helper.outputs.dependencies }}/mariadb-connector-c-${{ env.MARIADB_CONNECTOR_C_VERSION }}-x86' \
             '--mariadb64-path=${{ steps.path_helper.outputs.dependencies }}/mariadb-connector-c-${{ env.MARIADB_CONNECTOR_C_VERSION }}-x86_64'
           ambuild
+          if [ "${{ matrix.platform }}" == "linux" ]; then
+            ccache --show-stats
+          else
+            sccache --show-stats
+          fi
 
           mkdir -p package/addons/sourcemod/configs/geoip
           cp '${{ steps.path_helper.outputs.dependencies }}/GeoLite2-City.mmdb' package/addons/sourcemod/configs/geoip/GeoLite2-City.mmdb
