@@ -105,6 +105,9 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-mariadb${{ env.MARIADB_CONNECTOR_C_RELEASE }}-mmsource${{ env.MMSOURCE_VERSION }}-
             ${{ runner.os }}-build-${{ env.cache-name }}-mariadb${{ env.MARIADB_CONNECTOR_C_RELEASE }}-
       
+      - name: Install sccache
+        uses: mozilla-actions/sccache-action@v0.0.11
+
       - name: Install dependencies
         shell: bash
         env:
@@ -112,6 +115,9 @@ jobs:
         run: |
           mkdir -p '${{ steps.path_helper.outputs.dependencies }}'
           cd '${{ steps.path_helper.outputs.dependencies }}'
+
+          # Our ambuild fork adds CC_LAUNCHER/CXX_LAUNCHER for sccache; checkout-deps keeps an installed ambuild.
+          "$(command -v python3 || command -v python)" -m pip install --force-reinstall --no-deps git+https://github.com/adriansmares/ambuild.git@master
 
           # Satisfy checkout-deps requirement for a "sourcemod" folder.
           mkdir -p sourcemod
@@ -140,6 +146,9 @@ jobs:
         env:
           BREAKPAD_SYMBOL_SERVER: ${{ vars.BREAKPAD_SYMBOL_SERVER }}
           BREAKPAD_SYMBOL_SERVER_TOKEN: ${{ secrets.BREAKPAD_SYMBOL_SERVER_TOKEN }}
+          CC_LAUNCHER: sccache
+          CXX_LAUNCHER: sccache
+          SCCACHE_GHA_ENABLED: true
         run: |
           mkdir build
           cd build
@@ -154,6 +163,7 @@ jobs:
             '--mariadb-path=${{ steps.path_helper.outputs.dependencies }}/mariadb-connector-c-${{ env.MARIADB_CONNECTOR_C_VERSION }}-x86' \
             '--mariadb64-path=${{ steps.path_helper.outputs.dependencies }}/mariadb-connector-c-${{ env.MARIADB_CONNECTOR_C_VERSION }}-x86_64'
           ambuild
+          sccache --show-stats
 
           mkdir -p package/addons/sourcemod/configs/geoip
           cp '${{ steps.path_helper.outputs.dependencies }}/GeoLite2-City.mmdb' package/addons/sourcemod/configs/geoip/GeoLite2-City.mmdb
