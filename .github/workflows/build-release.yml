@@ -68,6 +68,7 @@ jobs:
         run: |
           echo "dependencies=$GITHUB_WORKSPACE/dependencies" >> $GITHUB_OUTPUT
           echo "ccache=$GITHUB_WORKSPACE/.ccache" >> $GITHUB_OUTPUT
+          echo "workspace=$GITHUB_WORKSPACE" >> $GITHUB_OUTPUT
       
       - name: Generate SDK list
         id: sdk_list
@@ -165,7 +166,7 @@ jobs:
           BREAKPAD_SYMBOL_SERVER: ${{ vars.BREAKPAD_SYMBOL_SERVER }}
           BREAKPAD_SYMBOL_SERVER_TOKEN: ${{ secrets.BREAKPAD_SYMBOL_SERVER_TOKEN }}
           CCACHE_DIR: ${{ steps.path_helper.outputs.ccache }}
-          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_BASEDIR: ${{ steps.path_helper.outputs.workspace }}
           CCACHE_COMPILERCHECK: content
           CCACHE_MAXSIZE: 3G
           SCCACHE_GHA_ENABLED: true
