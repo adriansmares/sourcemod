@@ -109,6 +109,30 @@ jobs:
       - name: Install sccache
         uses: mozilla-actions/sccache-action@v0.0.11
 
+      - name: Checkout patched sccache
+        if: matrix.platform == 'windows'
+        uses: actions/checkout@v7
+        with:
+          repository: adriansmares/sccache
+          ref: msvc-preprocessor-cache
+          path: sccache-src
+
+      - name: Cache the sccache build
+        if: matrix.platform == 'windows'
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: sccache-src
+
+      # TEMP: replaces the released sccache with the MSVC preprocessor cache patch.
+      - name: Build patched sccache
+        if: matrix.platform == 'windows'
+        shell: bash
+        run: |
+          cd sccache-src
+          cargo build --release
+          cp target/release/sccache.exe "$(dirname "$SCCACHE_PATH")/sccache.exe"
+          sccache --version
+
       - name: Cache compiler output
         uses: actions/cache@v6
         with:
