@@ -182,7 +182,7 @@ jobs:
           CC_LAUNCHER: sccache
           CXX_LAUNCHER: sccache
           SCCACHE_DIR: ${{ steps.path_helper.outputs.sccache }}
-          SCCACHE_CACHE_SIZE: 1G
+          SCCACHE_CACHE_SIZE: 2G
           SCCACHE_LOG: ${{ matrix.platform == 'windows' && 'debug' || '' }}
           SCCACHE_ERROR_LOG: ${{ runner.temp }}/sccache.log
         run: |
