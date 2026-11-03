@@ -6,6 +6,7 @@ on:
   workflow_dispatch:
 jobs:
   keys:
+    if: false
     strategy:
       fail-fast: false
       matrix:
@@ -31,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        sccache: [release, pr]
+        sccache: [pr]
     runs-on: windows-2022
     defaults: { run: { shell: bash } }
     steps:
@@ -44,7 +45,9 @@ jobs:
       - if: matrix.sccache == 'pr'
         run: |
           git clone -q --depth 1 -b windows-msvc-preprocessor-cache https://github.com/adriansmares/sccache "$RUNNER_TEMP/src"
-          cd "$RUNNER_TEMP/src" && cargo build -q && mkdir -p "$RUNNER_TEMP/bin" && cp target/debug/sccache.exe "$RUNNER_TEMP/bin/"
+          cd "$RUNNER_TEMP/src"
+          { rustup update stable --no-self-update && rustup default stable && rustc --version && cargo build 2>&1 | tail -40; } 2>&1 | tee "$RUNNER_TEMP/out.txt"
+          mkdir -p "$RUNNER_TEMP/bin" && cp target/debug/sccache.exe "$RUNNER_TEMP/bin/"
       - run: |
           { echo "sccache: ${{ matrix.sccache }} ($("$RUNNER_TEMP/bin/sccache.exe" --version))"; ./e2e.sh "$RUNNER_TEMP/bin/sccache.exe"; } 2>&1 | tee "$RUNNER_TEMP/out.txt"
       - *publish
