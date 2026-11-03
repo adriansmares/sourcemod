@@ -6,21 +6,19 @@ on:
   workflow_dispatch:
 jobs:
   keys:
-    if: false
     strategy:
       fail-fast: false
       matrix:
         include:
           - { os: windows-2022, cc: cl }
           - { os: windows-2022, cc: clang-cl }
-          - { os: ubuntu-24.04, cc: gcc }
     runs-on: ${{ matrix.os }}
     defaults: { run: { shell: bash } }
     steps:
       - uses: actions/checkout@v4
       - if: runner.os == 'Windows'
         uses: ilammy/msvc-dev-cmd@v1
-      - run: ./keys.sh ${{ matrix.cc }} 2>&1 | tee "$RUNNER_TEMP/out.txt"
+      - run: ./trim.sh ${{ matrix.cc }} 2>&1 | tee "$RUNNER_TEMP/out.txt"
       - &publish
         name: Publish the output as an annotation
         if: always()
@@ -28,29 +26,3 @@ jobs:
           # Annotations are readable through the public API, job logs are not.
           msg=$(sed -e 's/%/%25/g' "$RUNNER_TEMP/out.txt" | awk 'BEGIN{ORS="%0A"} {print}')
           echo "::notice title=${{ github.job }}::$msg"
-  e2e:
-    strategy:
-      fail-fast: false
-      matrix:
-        sccache: [pr]
-    runs-on: windows-2022
-    defaults: { run: { shell: bash } }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ilammy/msvc-dev-cmd@v1
-      - if: matrix.sccache == 'release'
-        run: |
-          curl -sSfL -o s.zip https://github.com/mozilla/sccache/releases/download/v0.19.0/sccache-v0.19.0-x86_64-pc-windows-msvc.zip
-          unzip -qj s.zip '*/sccache.exe' -d "$RUNNER_TEMP/bin"
-      - if: matrix.sccache == 'pr'
-        # Git Bash's /usr/bin/link would shadow MSVC's link.exe.
-        shell: pwsh
-        run: |
-          git clone -q --depth 1 -b windows-msvc-preprocessor-cache https://github.com/adriansmares/sccache "$env:RUNNER_TEMP\src"
-          cd "$env:RUNNER_TEMP\src"
-          cargo build 2>&1 | Select-Object -Last 30 | Tee-Object -FilePath "$env:RUNNER_TEMP\out.txt"
-          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\bin" | Out-Null
-          Copy-Item target\debug\sccache.exe "$env:RUNNER_TEMP\bin\"
-      - run: |
-          { echo "sccache: ${{ matrix.sccache }} ($("$RUNNER_TEMP/bin/sccache.exe" --version))"; ./e2e.sh "$RUNNER_TEMP/bin/sccache.exe"; } 2>&1 | tee "$RUNNER_TEMP/out.txt"
-      - *publish
