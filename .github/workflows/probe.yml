@@ -5,24 +5,37 @@ on:
     branches: [probe/cl-line-paths]
   workflow_dispatch:
 jobs:
-  keys:
+  rename:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - { os: windows-2022, cc: cl }
-          - { os: windows-2022, cc: clang-cl }
-    runs-on: ${{ matrix.os }}
+        sccache: [release, main, pr]
+    runs-on: windows-2022
     defaults: { run: { shell: bash } }
     steps:
       - uses: actions/checkout@v4
-      - if: runner.os == 'Windows'
-        uses: ilammy/msvc-dev-cmd@v1
-      - run: ./trim.sh ${{ matrix.cc }} 2>&1 | tee "$RUNNER_TEMP/out.txt"
-      - &publish
-        name: Publish the output as an annotation
+      - uses: ilammy/msvc-dev-cmd@v1
+      - if: matrix.sccache == 'release'
+        run: |
+          curl -sSfL -o s.zip https://github.com/mozilla/sccache/releases/download/v0.19.0/sccache-v0.19.0-x86_64-pc-windows-msvc.zip
+          unzip -qj s.zip '*/sccache.exe' -d "$RUNNER_TEMP/bin"
+      - if: matrix.sccache != 'release'
+        # Git Bash's /usr/bin/link would shadow MSVC's link.exe.
+        shell: pwsh
+        run: |
+          if ("${{ matrix.sccache }}" -eq "main") { $repo = "mozilla/sccache"; $ref = "main" } else { $repo = "adriansmares/sccache"; $ref = "windows-msvc-preprocessor-cache" }
+          git clone -q --depth 1 -b $ref "https://github.com/$repo" "$env:RUNNER_TEMP\src"
+          cd "$env:RUNNER_TEMP\src"
+          cargo build 2>&1 | Select-Object -Last 5
+          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\bin" | Out-Null
+          Copy-Item target\debug\sccache.exe "$env:RUNNER_TEMP\bin\"
+          git log -1 --format="commit %h %s" | Out-File -Encoding utf8 "$env:RUNNER_TEMP\commit.txt"
+      - run: |
+          { echo "sccache: ${{ matrix.sccache }} $(cat "$RUNNER_TEMP/commit.txt" 2>/dev/null) ($("$RUNNER_TEMP/bin/sccache.exe" --version))"
+            for d in false true; do echo "#### preprocessor cache: $d"; ./rename.sh "$RUNNER_TEMP/bin/sccache.exe" $d; done; } 2>&1 | tee "$RUNNER_TEMP/out.txt"
+      - name: Publish the output as an annotation
         if: always()
         run: |
           # Annotations are readable through the public API, job logs are not.
           msg=$(sed -e 's/%/%25/g' "$RUNNER_TEMP/out.txt" | awk 'BEGIN{ORS="%0A"} {print}')
-          echo "::notice title=${{ github.job }}::$msg"
+          echo "::notice title=${{ matrix.sccache }}::$msg"
