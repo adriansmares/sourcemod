@@ -127,7 +127,7 @@ jobs:
           cd '${{ steps.path_helper.outputs.dependencies }}'
 
           # Our ambuild fork adds CC_LAUNCHER/CXX_LAUNCHER for sccache; checkout-deps keeps an installed ambuild.
-          "$(command -v python3 || command -v python)" -m pip install --force-reinstall --no-deps git+https://github.com/adriansmares/ambuild.git@master
+          "$(command -v python3 || command -v python)" -m pip install --break-system-packages --force-reinstall --no-deps git+https://github.com/adriansmares/ambuild.git@master
 
           # Satisfy checkout-deps requirement for a "sourcemod" folder.
           mkdir -p sourcemod
