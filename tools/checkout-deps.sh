@@ -7,7 +7,7 @@ download_mariadb=1
 
 mariadb_version=${MARIADB_CONNECTOR_C_VERSION:-3.4.9}
 mariadb_release=${MARIADB_CONNECTOR_C_RELEASE:-3.4.9-sm.5}
-mariadb_repo=alliedmodders/mariadb-connector-c
+mariadb_repo=${MARIADB_CONNECTOR_C_REPO:-alliedmodders/mariadb-connector-c}
 
 # List of HL2SDK branch names to download.
 # ./checkout-deps.sh -s tf2,css
