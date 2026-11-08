@@ -23,6 +23,8 @@ if SM.mariadb_root:
         '-Wl,-Bstatic',
         '-lssl',
         '-lcrypto',
+        # Debian 13's static OpenSSL has zstd compression built in.
+        '-lzstd',
         '-Wl,-Bdynamic',
         '-lz',
         '-lpthread',
