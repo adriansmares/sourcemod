@@ -25,7 +25,8 @@ jobs:
           - platform: linux
             os: ubuntu-latest
             os_short: linux
-            container_image: ghcr.io/alliedmodders/build-containers/debian11-clang22:latest
+            # Debian 13, like our servers: the binaries need its glibc 2.38 and do not load on older releases.
+            container_image: ghcr.io/alliedmodders/build-containers/debian13-clang22@sha256:6f680e0c77cfd10696a8cecd14a3018bb910d046d0cbc641d89c3a3722f822c8
       fail-fast: false
     name: ${{ matrix.platform }}
     runs-on: ${{ matrix.os }}
