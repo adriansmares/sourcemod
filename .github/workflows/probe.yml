@@ -1,0 +1,20 @@
+# Throwaway: which default MSBuild and CMake builds pass /sourceDependencies to cl.exe.
+name: probe source dependencies
+on:
+  push:
+    branches: [probe/msbuild-source-dependencies]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    defaults: { run: { shell: bash } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - run: bash probe.sh 2>&1

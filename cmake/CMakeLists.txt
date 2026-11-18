@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.28)
+project(probe CXX)
+set(CMAKE_CXX_STANDARD ${PROBE_STD})
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+add_executable(probe main.cpp)
+if(PROBE_MODULE)
+  target_sources(probe PRIVATE FILE_SET CXX_MODULES FILES mod.ixx)
+endif()
