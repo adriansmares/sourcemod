@@ -1,0 +1,26 @@
+# Throwaway: does a preprocessor cache hit give back cl.exe's /sourceDependencies file?
+name: probe msvc deps cache
+on:
+  push:
+    branches: [probe/msvc-deps-cache]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: windows-2022
+    defaults: { run: { shell: bash } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+      - name: Build sccache
+        # Git Bash's /usr/bin/link would shadow MSVC's link.exe.
+        shell: pwsh
+        run: |
+          git clone -q --depth 1 -b msvc-source-dependencies-cache https://github.com/adriansmares/sccache "$env:RUNNER_TEMP\src"
+          cd "$env:RUNNER_TEMP\src"
+          git log -1 --format="commit %h %s"
+          cargo build --no-default-features 2>&1 | Select-Object -Last 3
+          New-Item -ItemType Directory -Force "$env:RUNNER_TEMP\bin" | Out-Null
+          Copy-Item target\debug\sccache.exe "$env:RUNNER_TEMP\bin\"
+      - run: bash probe.sh "$RUNNER_TEMP/bin/sccache.exe" 2>&1
